@@ -1,3 +1,112 @@
+var dur = 1000
+
+var newScale = function(students, lengths)
+{
+
+var xScale = d3.scaleLinear()
+        .domain([getMeanGrade(students)])
+        .range([0,graph.width])
+           
+    var yScale = d3.scaleLinear()
+        .domain([0, getMeanGrade(students)])
+        .range([graph.height,0])
+    
+    return {xScale:xScale,yScale:yScale}
+}
+
+var updateGraph = function(target,students,lengths)
+{
+    
+    students.sort(function(e1,e2)
+                 {return e2.grade-e1.grade})
+    
+    console.log("updating graph")
+    
+    var scales = newScale(students,lengths)
+    var xScale = scales.xScale;
+    var yScale = scales.yScale;
+    
+    updateTitleBanner(msg)
+    updateAxes(target,xScale,yScale)
+    
+    var dots = d3.select(target)
+        .selectAll("cirlce")
+        .data(getMeanGrade(students))
+        
+    
+    dots.enter()
+        .append("circle")
+    
+    dots.exit()
+        .remove()
+    
+    d3.select(target)
+        .select(".graph")
+        .selectAll("circle")
+        .transition()
+        .duration(dur)
+        .attr("x", function(student)
+                {return xScale(students.grade)})
+        .attr("y",function(students)
+                {return yScale(student.grade)})
+        .attr("width",xScale.bandwidth)
+        .attr("height",function(student)
+                {return lengths.graph.height-yScale(student.grade)})
+        .attr("cx",2)
+        .attr("cy",2)
+        .attr("fill","green")
+}
+
+var createLabels = function(lengths,target)
+    {
+        var labels = d3.select(target)
+            .append("g")
+            .classed("labels",true)
+        
+        labels.append("text")
+            .attr("transform","translate(20,"+(lengths.margins.top+(lengths.graph.height/2))+")")
+            .append("text")
+            .text("Grade")
+            .classed("label",true)
+            .attr("text-anchor","middle")
+            .attr("transform","rotate(90)")
+    }
+var initAxes = function(lengths,target,xScale,yScale)
+{
+    var axes = d3.select(target)
+        .append("g")
+        .classed("class","axis")
+    
+    axes.append("g")
+        .attr("id","xAxis")
+        .attr("transform","translate("+lengths.margins.left+","+(lengths.margins.top+lengths.graph.height)+")")
+        
+    
+    axes.append("g")
+        .attr("id","yAxis")
+        .attr("transform","translate("+(lengths.margins.left-5)+","+(lengths.margins.top)+")")
+}
+
+var updateAxes = function(target,xScale,yScale)
+{
+    var xAxis = d3.axisBottom(xScale)
+    var yAxis = d3.axisLeft(yScale)
+    
+    d3.select("#xAxis")
+        .transition()
+        .duration(dur)
+        .call(xAxis)
+    
+    d3.select("#yAxis")
+        .transition()
+        .duration(dur)
+        .call(yAxis)
+    
+}
+
+
+
+//gets the grade for each type requested
 var getMeanGrade = function(entries)
 {
     return d3.mean(entries,function(entry)
@@ -6,11 +115,11 @@ var getMeanGrade = function(entries)
         })
 }
 
-
+//draws the scatterplot
 var drawScatter = function(students,target,
               xScale,yScale,xProp,yProp)
 {
-
+     //sets the title to whatever the button you click on does
     setBanner(xProp.toUpperCase() +" vs "+ yProp.toUpperCase());
     
     d3.select(target).select(".graph")
@@ -37,7 +146,7 @@ var clearScatter = function(target)
         .remove();
 }
 
-
+//axes drawing
 var createAxes = function(screen,margins,graph,
                            target,xScale,yScale)
 {
@@ -71,8 +180,17 @@ var initGraph = function(target,students)
         width:screen.width-margins.left-margins.right,
         height:screen.height-margins.top-margins.bottom,
     }
-    
-
+var graph =
+    {
+        width:screen.width-margins.left-margins.right,
+        height:screen.height-margins.top-margins.bottom,
+    }
+var lengths = 
+    {
+        screen:screen,
+        margins:margins,
+        graph:graph
+    }
     //set the screen size
     d3.select(target)
         .attr("width",screen.width)
@@ -88,15 +206,9 @@ var initGraph = function(target,students)
     //create scales for all of the dimensions
     
     
-    var xScale = d3.scaleLinear()
-        .domain([0,100])
-        .range([0,graph.width])
-           
-    var yScale = d3.scaleLinear()
-        .domain([0,100])
-        .range([graph.height,0])
-  
-    
+    createLabels(lengths,target)
+    initAxes(lengths,target)
+    updateGraph(target,students,lengths)
     
     createAxes(screen,margins,graph,target,xScale,yScale);
     
