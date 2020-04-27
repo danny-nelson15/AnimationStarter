@@ -1,11 +1,20 @@
 var dur = 1000
+var margins = {top:15,bottom:40,left:70,right:15};
+var graph =
+    {
+        width:screen.width-margins.left-margins.right,
+        height:screen.height-margins.top-margins.bottom,
+    }
+var screen = {width:500, height:400};
+    
+    //how much space will be on each side of the graph
 
 var newScale = function(students, lengths)
 {
 
 var xScale = d3.scaleLinear()
         .domain([getMeanGrade(students)])
-        .range([0,graph.width])
+        .range([0, graph.width])
            
     var yScale = d3.scaleLinear()
         .domain([0, getMeanGrade(students)])
@@ -26,18 +35,19 @@ var updateGraph = function(target,students,lengths)
     var xScale = scales.xScale;
     var yScale = scales.yScale;
     
-    updateTitleBanner(msg)
+    //updateTitleBanner(msg)
     updateAxes(target,xScale,yScale)
     
-    var dots = d3.select(target)
-        .selectAll("cirlce")
-        .data(getMeanGrade(students))
+    var circles = d3.select(target)
+        .select(".graph")
+        .selectAll("circle")
+        .data(students, getMeanGrade(students))
         
     
-    dots.enter()
+    circles.enter()
         .append("circle")
     
-    dots.exit()
+    circles.exit()
         .remove()
     
     d3.select(target)
@@ -48,7 +58,7 @@ var updateGraph = function(target,students,lengths)
         .attr("x", function(student)
                 {return xScale(students.grade)})
         .attr("y",function(students)
-                {return yScale(student.grade)})
+                {return yScale(students.grade)})
         .attr("width",xScale.bandwidth)
         .attr("height",function(student)
                 {return lengths.graph.height-yScale(student.grade)})
@@ -169,10 +179,7 @@ var createAxes = function(screen,margins,graph,
 var initGraph = function(target,students)
 {
     //the size of the screen
-    var screen = {width:500, height:400};
     
-    //how much space will be on each side of the graph
-    var margins = {top:15,bottom:40,left:70,right:15};
     
     //generated how much space the graph will take up
     var graph = 
@@ -180,11 +187,7 @@ var initGraph = function(target,students)
         width:screen.width-margins.left-margins.right,
         height:screen.height-margins.top-margins.bottom,
     }
-var graph =
-    {
-        width:screen.width-margins.left-margins.right,
-        height:screen.height-margins.top-margins.bottom,
-    }
+
 var lengths = 
     {
         screen:screen,
